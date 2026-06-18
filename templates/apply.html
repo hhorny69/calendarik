@@ -1,0 +1,191 @@
+﻿<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Оставление заявки</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<header>
+    <nav class='nav-left'>
+        <a href='/index'><span class='nav-dot'></span> Главная страница</a>
+        <a href='/events'><span class='nav-dot'></span> Записи на мероприятия</a>
+    </nav>
+    <div class='logo'>
+        <img src='/static/img/logo.png' alt='Логотип'>
+    </div>
+    <nav class='nav-right' id='nav-right'>
+        <a href='/apply'><span class='nav-dot'></span> Оставление заявки на проведение мероприятия</a>
+        <a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>
+    </nav>
+</header>
+<div class='page-wrapper'>
+    <h1 class='page-title'>Оставление заявки на проведение мероприятия</h1>
+    <div class='profile-wrapper'>
+        <div class='profile-card' style='max-width: 680px;'>
+            <div id='flash-container'></div>
+            <form id='apply-form'>
+                <div class='form-group'>
+                    <label>Название мероприятия</label>
+                    <input type='text' id='title' placeholder='Введите название мероприятия'>
+                    <span class='error-text' id='title-error'></span>
+                </div>
+                <div class='grid-2'>
+                    <div class='form-group'>
+                        <label>Тип мероприятия</label>
+                        <select id='event-type'>
+                            <option value='meeting'>Совещание</option>
+                            <option value='training'>Тренинг</option>
+                            <option value='corporate'>Корпоратив</option>
+                            <option value='conference'>Конференция</option>
+                            <option value='other'>Другое</option>
+                        </select>
+                    </div>
+                    <div class='form-group'>
+                        <label>Макс. количество участников</label>
+                        <input type='number' id='max-participants' placeholder='Не ограничено' min='1'>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <label>Описание</label>
+                    <textarea id='description' placeholder='Опишите мероприятие' style='height: 100px; resize: vertical;'></textarea>
+                </div>
+                <div class='form-group'>
+                    <label>Место проведения</label>
+                    <input type='text' id='location' placeholder='Введите адрес или название места'>
+                    <span class='error-text' id='location-error'></span>
+                </div>
+                <div class='grid-2'>
+                    <div class='form-group'>
+                        <label>Дата и время начала</label>
+                        <input type='datetime-local' id='start-time'>
+                        <span class='error-text' id='start-error'></span>
+                    </div>
+                    <div class='form-group'>
+                        <label>Дата и время окончания</label>
+                        <input type='datetime-local' id='end-time'>
+                        <span class='error-text' id='end-error'></span>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <label>Цвет метки</label>
+                    <div style='display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;'>
+                        <div class='color-option selected' style='background:#3498db;' onclick="selectColor('#3498db', this)"></div>
+                        <div class='color-option' style='background:#e74c3c;' onclick="selectColor('#e74c3c', this)"></div>
+                        <div class='color-option' style='background:#2ecc71;' onclick="selectColor('#2ecc71', this)"></div>
+                        <div class='color-option' style='background:#f39c12;' onclick="selectColor('#f39c12', this)"></div>
+                        <div class='color-option' style='background:#9b59b6;' onclick="selectColor('#9b59b6', this)"></div>
+                        <div class='color-option' style='background:#8B1A2B;' onclick="selectColor('#8B1A2B', this)"></div>
+                    </div>
+                </div>
+                <div class='form-group' style='display: flex; align-items: center; gap: 10px;'>
+                    <input type='checkbox' id='is-public' style='width: auto;'>
+                    <label for='is-public' style='margin: 0;'>Сделать мероприятие публичным</label>
+                </div>
+                <div class='profile-btns'>
+                    <button type='button' class='btn btn-primary' onclick='submitApply()'>Отправить заявку</button>
+                    <button type='button' class='btn' onclick="window.location.href='/index'">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id='modal' class='modal-overlay'>
+    <div class='modal-box'>
+        <p id='modal-text'>Заявка успешно отправлена! Ожидайте проверки администратором.</p>
+        <div class='modal-btns'>
+            <button class='btn btn-primary' onclick='closeModal()'>Хорошо</button>
+        </div>
+    </div>
+</div>
+<script>
+async function loadNavRole() {
+    try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+            const data = await response.json();
+            const nav = document.getElementById('nav-right');
+            if (data.role_code === 'admin') {
+                nav.innerHTML = "<a href='/admin'><span class='nav-dot'></span> Панель управления</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            } else if (data.role_code === 'organizer') {
+                nav.innerHTML = "<a href='/organizer'><span class='nav-dot'></span> Мои мероприятия</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            }
+        }
+    } catch(e) {}
+}
+var selectedColor = '#3498db';
+function selectColor(color, el) {
+    document.querySelectorAll('.color-option').forEach(function(o) { o.classList.remove('selected'); });
+    el.classList.add('selected');
+    selectedColor = color;
+}
+function showError(fieldId, errorId, message) {
+    document.getElementById(fieldId).classList.add('input-error');
+    document.getElementById(errorId).textContent = message + ' !';
+}
+function clearErrors() {
+    ['title', 'location', 'start-time', 'end-time'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('input-error');
+    });
+    ['title-error', 'location-error', 'start-error', 'end-error'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = '';
+    });
+}
+async function submitApply() {
+    clearErrors();
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const location = document.getElementById('location').value.trim();
+    const eventType = document.getElementById('event-type').value;
+    const maxParticipants = document.getElementById('max-participants').value;
+    const startTime = document.getElementById('start-time').value;
+    const endTime = document.getElementById('end-time').value;
+    const isPublic = document.getElementById('is-public').checked;
+    let hasError = false;
+    if (!title) { showError('title', 'title-error', 'Введите название'); hasError = true; }
+    if (!location) { showError('location', 'location-error', 'Введите место проведения'); hasError = true; }
+    if (!startTime) { showError('start-time', 'start-error', 'Введите дату начала'); hasError = true; }
+    if (!endTime) { showError('end-time', 'end-error', 'Введите дату окончания'); hasError = true; }
+    if (hasError) return;
+    try {
+        const response = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                location: location,
+                event_type: eventType,
+                max_participants: maxParticipants ? parseInt(maxParticipants) : null,
+                start_time: startTime,
+                end_time: endTime,
+                color: selectedColor,
+                is_public: isPublic
+            })
+        });
+        if (response.ok) {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('apply-form').reset();
+        } else {
+            const data = await response.json();
+            document.getElementById('flash-container').innerHTML = '<div class="flash-message flash-error">' + (data.error || 'Ошибка при отправке') + '</div>';
+        }
+    } catch(e) {
+        document.getElementById('modal').classList.add('active');
+    }
+}
+function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    window.location.href = '/index';
+}
+loadNavRole();
+</script>
+</body>
+</html>

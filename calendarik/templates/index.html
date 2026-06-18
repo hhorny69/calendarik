@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Главная страница</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<header>
+    <nav class='nav-left'>
+        <a href='/index'><span class='nav-dot'></span> Главная страница</a>
+        <a href='/events'><span class='nav-dot'></span> Записи на мероприятия</a>
+    </nav>
+    <div class='logo'>
+        <img src='/static/img/logo.png' alt='Логотип'>
+    </div>
+    <nav class='nav-right' id='nav-right'>
+        <a href='/apply'><span class='nav-dot'></span> Оставление заявки на проведение мероприятия</a>
+        <a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>
+    </nav>
+</header>
+<div class='page-wrapper' style='padding-bottom:80px;'>
+    <h1 class='page-title'>Главные новости</h1>
+    <div class='stats-grid' id='stats-grid' style='display:none;'>
+        <div class='stat-card'><div class='stat-number' id='stat-events'>0</div><div class='stat-label'>Активных мероприятий</div></div>
+        <div class='stat-card'><div class='stat-number' id='stat-regs'>0</div><div class='stat-label'>Моих регистраций</div></div>
+        <div class='stat-card'><div class='stat-number' id='stat-pending'>0</div><div class='stat-label'>На проверке</div></div>
+        <div class='stat-card'><div class='stat-number' id='stat-users'>0</div><div class='stat-label'>Пользователей</div></div>
+    </div>
+    <div class='grid-3' style='margin-top:20px;'>
+        <div class='card' style='min-height: 320px;'>
+            <div>
+                <div class='card-title'>Актуальные мероприятия</div>
+                <div id='events-list' style='margin-top: 10px;'>
+                    <p style='font-size:13px; color:#666; text-align:center;'>агрузка...</p>
+                </div>
+            </div>
+            <button class='btn' onclick="window.location.href='/events'">Записаться</button>
+        </div>
+        <div class='card' style='min-height: 320px;'>
+            <div>
+                <div class='card-title'>Расписание олимпиад</div>
+                <div style='margin-top: 10px;'>
+                    <div class='event-item-clickable' onclick='openOlympiad(0)'>
+                        <button class='plus-btn' style='flex-shrink:0;'>+</button>
+                        <div><p class='event-title'>Олимпиада по математике</p><p class='event-date'>15 апреля 2026, 10:00</p><p style='font-size:11px; color:#4a7c3f;' id='count-0'>12/50 участников</p></div>
+                    </div>
+                    <div class='event-item-clickable' onclick='openOlympiad(1)'>
+                        <button class='plus-btn' style='flex-shrink:0;'>+</button>
+                        <div><p class='event-title'>Олимпиада по физике</p><p class='event-date'>22 апреля 2026, 10:00</p><p style='font-size:11px; color:#4a7c3f;' id='count-1'>8/40 участников</p></div>
+                    </div>
+                    <div class='event-item-clickable' onclick='openOlympiad(2)'>
+                        <button class='plus-btn' style='flex-shrink:0;'>+</button>
+                        <div><p class='event-title'>Олимпиада по информатике</p><p class='event-date'>29 апреля 2026, 10:00</p><p style='font-size:11px; color:#4a7c3f;' id='count-2'>5/30 участников</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class='card' style='min-height: 320px;'>
+            <div>
+                <div class='card-title'>Регистрация на мероприятие</div>
+                <div style='margin-top: 10px;'>
+                    <div class='form-group'><label>Название мероприятия</label><input type='text' id='reg-title' placeholder='Введите название'></div>
+                    <div class='form-group'><label>Место проведения</label><input type='text' id='reg-location' placeholder='Введите место'></div>
+                    <div class='form-group'><label></label><input type='text' id='reg-name' placeholder='Введите '></div>
+                    <div class='form-group'><label>Электронная почта</label><input type='email' id='reg-email' placeholder='Введите email'></div>
+                </div>
+            </div>
+            <button class='btn btn-primary' onclick='quickRegister()'>Зарегистрироваться</button>
+        </div>
+    </div>
+</div>
+
+<footer class='site-footer' style='margin-top:0;'>
+    <div class='footer-inner'>
+        <span>Контактные данные: <strong>+7 (347) 782-11-49</strong></span>
+        <span>По поводу ошибок писать: <a href='mailto:mishkino@mail.ru'>mishkino@mail.ru</a></span>
+    </div>
+</footer>
+
+<div id='modal-olympiad' class='modal-overlay'>
+    <div class='modal-box' style='width:460px;'>
+        <p style='font-size:16px; font-weight:500; margin-bottom:8px;' id='olympiad-title'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='olympiad-date'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='olympiad-time'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='olympiad-dept'></p>
+        <p style='font-size:13px; color:#8B1A2B; font-weight:500; margin-bottom:12px;' id='olympiad-count'></p>
+        <p style='font-size:14px; color:#444; margin-bottom:16px; line-height:1.6;' id='olympiad-desc'></p>
+        <div id='olympiad-flash'></div>
+        <div class='modal-btns'>
+            <button class='btn btn-primary' id='btn-olympiad-signup' onclick='signUpOlympiad()'>Записаться</button>
+            <button class='btn' onclick='closeOlympiad()'>Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div id='modal-event-detail' class='modal-overlay'>
+    <div class='modal-box' style='width:460px;'>
+        <p style='font-size:16px; font-weight:500; margin-bottom:4px;' id='detail-title'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='detail-date'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='detail-location'></p>
+        <p style='font-size:12px; color:#888; margin-bottom:4px;' id='detail-type'></p>
+        <p style='font-size:13px; color:#8B1A2B; font-weight:500; margin-bottom:12px;' id='detail-count'></p>
+        <p style='font-size:14px; color:#444; margin-bottom:20px; line-height:1.6;' id='detail-desc'></p>
+        <div id='detail-flash'></div>
+        <div class='modal-btns'>
+            <button class='btn btn-primary' id='btn-signup' onclick='signUpEvent()'>Записаться</button>
+            <button class='btn' onclick='closeDetailModal()'>Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div id='modal' class='modal-overlay'>
+    <div class='modal-box'>
+        <p id='modal-text'>Вы уверены что хотите Зарегистрироваться?</p>
+        <div class='modal-btns'>
+            <button class='btn btn-primary' onclick='confirmRegister()'>Да</button>
+            <button class='btn' onclick='closeModal()'>Нет</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var allEvents = [];
+var currentEventId = 0;
+var currentOlympiadIndex = 0;
+var eventTypes = { meeting: 'Совещание', training: 'Тренинг', corporate: 'Корпоратив', conference: 'Конференция', other: 'Другое' };
+var olympiads = [
+    { title: 'Олимпиада по математике', date: '15 апреля 2026', time: '10:00 - 13:00', dept: 'Отделы: Аналитика, Финансы, IТ', count: 12, max: 50, desc: 'Олимпиада по математике для сотрудников всех отделов. Задания включают алгебру, геометрию и теорию вероятностей. Победители получают грамоты и призы.' },
+    { title: 'Олимпиада по физике', date: '22 апреля 2026', time: '10:00 - 12:30', dept: 'Отделы: Инженерный, IТ, Производство', count: 8, max: 40, desc: 'Олимпиада по физике для технических отделов. Задания охватывают механику, термодинамику и электричество. Обязательно наличие калькулятора.' },
+    { title: 'Олимпиада по информатике', date: '29 апреля 2026', time: '10:00 - 14:00', dept: 'Отделы: Т, Разработка, Аналитика', count: 5, max: 30, desc: 'Олимпиада по информатике - алгоритмы, структуры данных и программирование. Проводится на компьютерах. Язык программирования на выбор участника.' }
+];
+
+function openOlympiad(index) {
+    currentOlympiadIndex = index;
+    var o = olympiads[index];
+    document.getElementById('olympiad-title').textContent = o.title;
+    document.getElementById('olympiad-date').textContent = 'Дата: ' + o.date;
+    document.getElementById('olympiad-time').textContent = 'Время: ' + o.time;
+    document.getElementById('olympiad-dept').textContent = o.dept;
+    document.getElementById('olympiad-count').textContent = 'Участников: ' + o.count + '/' + o.max;
+    document.getElementById('olympiad-desc').textContent = o.desc;
+    document.getElementById('olympiad-flash').innerHTML = '';
+    var btn = document.getElementById('btn-olympiad-signup');
+    if (o.count >= o.max) {
+        btn.disabled = true;
+        btn.textContent = 'Мест нет';
+        btn.style.background = '#aaa';
+    } else {
+        btn.disabled = false;
+        btn.textContent = 'Записаться';
+        btn.style.background = '';
+    }
+    document.getElementById('modal-olympiad').classList.add('active');
+}
+
+function signUpOlympiad() {
+    var o = olympiads[currentOlympiadIndex];
+    var saved = localStorage.getItem('olympiad_registrations');
+    var regs = saved ? JSON.parse(saved) : [];
+    regs.push({ title: o.title, date: o.date, time: o.time });
+    localStorage.setItem('olympiad_registrations', JSON.stringify(regs));
+    o.count += 1;
+    document.getElementById('olympiad-count').textContent = 'частников: ' + o.count + '/' + o.max;
+    document.getElementById('count-' + currentOlympiadIndex).textContent = o.count + '/' + o.max + ' участников';
+    document.getElementById('olympiad-flash').innerHTML = '<div class="flash-message flash-success">Вы успешно записались!</div>';
+    var btn = document.getElementById('btn-olympiad-signup');
+    btn.disabled = true;
+    btn.textContent = 'Вы записаны';
+    btn.style.background = '#aaa';
+}
+
+function closeOlympiad() {
+    document.getElementById('modal-olympiad').classList.remove('active');
+}
+
+function formatDateTime(dateStr) {
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('ru-RU') + ' в ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+async function loadNavRole() {
+    try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+            const data = await response.json();
+            const nav = document.getElementById('nav-right');
+            if (data.role_code === 'admin') {
+                nav.innerHTML = "<a href='/admin'><span class='nav-dot'></span> Панель управления</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            } else if (data.role_code === 'organizer') {
+                nav.innerHTML = "<a href='/organizer'><span class='nav-dot'></span> Мои мероприятия</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            }
+        }
+    } catch(e) {}
+}
+
+async function loadStats() {
+    try {
+        const response = await fetch('/api/stats');
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('stat-events').textContent = data.total_events;
+            document.getElementById('stat-regs').textContent = data.my_registrations;
+            document.getElementById('stat-pending').textContent = data.pending_events;
+            document.getElementById('stat-users').textContent = data.total_users;
+            document.getElementById('stats-grid').style.display = 'grid';
+        }
+    } catch(e) {}
+}
+
+async function loadEvents() {
+    try {
+        const response = await fetch('/api/events');
+        if (response.ok) {
+            allEvents = await response.json();
+            const list = document.getElementById('events-list');
+            if (allEvents.length === 0) {
+                list.innerHTML = '<p style="font-size:13px; color:#666; text-align:center;">Нет актуальных мероприятий</p>';
+            } else {
+                list.innerHTML = allEvents.slice(0, 4).map(function(e) {
+                    var count = e.participants_count || 0;
+                    var max = e.max_participants;
+                    var countStr = max ? count + '/' + max + ' участников' : count + ' участников';
+                    var full = max && count >= max;
+                    return '<div class="event-item-clickable" onclick="openDetail(' + e.id + ')">' +
+                        '<button class="plus-btn" style="flex-shrink:0;">+</button>' +
+                        '<div style="flex:1;"><p class="event-title">' + e.title + '</p>' +
+                        '<p class="event-date">' + formatDateTime(e.start) + '</p>' +
+                        '<p style="font-size:11px; color:' + (full ? '#c0392b' : '#4a7c3f') + '; margin-top:2px;">' + countStr + (full ? ' - мест нет' : '') + '</p>' +
+                        '</div></div>';
+                }).join('');
+            }
+        } else {
+            document.getElementById('events-list').innerHTML = '<p style="font-size:13px; color:#666; text-align:center;">Войдите чтобы увидеть мероприятия</p>';
+        }
+    } catch(e) {
+        document.getElementById('events-list').innerHTML = '<p style="font-size:13px; color:#666; text-align:center;">Нет актуальных мероприятий</p>';
+    }
+}
+
+function openDetail(eventId) {
+    const event = allEvents.find(function(e) { return e.id === eventId; });
+    if (!event) return;
+    currentEventId = eventId;
+    var count = event.participants_count || 0;
+    var max = event.max_participants;
+    var full = max && count >= max;
+    document.getElementById('detail-title').textContent = event.title;
+    document.getElementById('detail-date').textContent = formatDateTime(event.start) + ' - ' + formatDateTime(event.end);
+    document.getElementById('detail-location').textContent = event.location ? 'Место: ' + event.location : '';
+    document.getElementById('detail-type').textContent = event.event_type ? 'Тип: ' + (eventTypes[event.event_type] || event.event_type) : '';
+    document.getElementById('detail-count').textContent = max ? 'Участников: ' + count + ' / ' + max : 'Участников: ' + count;
+    document.getElementById('detail-desc').textContent = event.description || 'Описание не указано';
+    document.getElementById('detail-flash').innerHTML = '';
+    var btn = document.getElementById('btn-signup');
+    if (full) { btn.disabled = true; btn.textContent = 'ест нет'; btn.style.background = '#aaa'; }
+    else { btn.disabled = false; btn.textContent = 'Записаться'; btn.style.background = ''; }
+    document.getElementById('modal-event-detail').classList.add('active');
+}
+
+async function signUpEvent() {
+    try {
+        const response = await fetch('/api/events/' + currentEventId + '/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        const flash = document.getElementById('detail-flash');
+        if (response.ok) {
+            flash.innerHTML = '<div class="flash-message flash-success">' + data.message + '</div>';
+            document.getElementById('btn-signup').disabled = true;
+            document.getElementById('btn-signup').textContent = 'ы записаны';
+            loadEvents();
+            loadStats();
+        } else {
+            flash.innerHTML = '<div class="flash-message flash-error">' + data.error + '</div>';
+        }
+    } catch(e) { console.error(e); }
+}
+
+function closeDetailModal() {
+    document.getElementById('modal-event-detail').classList.remove('active');
+}
+
+function quickRegister() {
+    const title = document.getElementById('reg-title').value.trim();
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    if (!title || !name || !email) { alert('Пожалуйста заполните все поля!'); return; }
+    document.getElementById('modal').classList.add('active');
+}
+
+function confirmRegister() {
+    closeModal();
+    ['reg-title', 'reg-location', 'reg-name', 'reg-email'].forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('modal-text').textContent = 'Вы успешно зарегистрированы!';
+    document.getElementById('modal').classList.add('active');
+    setTimeout(closeModal, 2000);
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    document.getElementById('modal-text').textContent = 'Вы уверены что хотите Зарегистрироваться?';
+}
+
+loadNavRole();
+loadStats();
+loadEvents();
+</script>
+</body>
+</html>

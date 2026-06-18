@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Личный кабинет</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<header>
+    <nav class='nav-left'>
+        <a href='/index'><span class='nav-dot'></span> Главная страница</a>
+        <a href='/events'><span class='nav-dot'></span> Записи на мероприятия</a>
+    </nav>
+    <div class='logo'>
+        <img src='/static/img/logo.png' alt='Логотип'>
+    </div>
+    <nav class='nav-right' id='nav-right'>
+        <a href='/apply'><span class='nav-dot'></span> Оставление заявки на проведение мероприятия</a>
+        <a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>
+    </nav>
+</header>
+
+<div class='page-wrapper'>
+    <h1 class='page-title'>Личный кабинет</h1>
+    <div class='profile-wrapper'>
+        <div class='profile-card' style='max-width:700px;'>
+            <div class='profile-avatar-big'>
+                <svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='white'>
+                    <path d='M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z'/>
+                </svg>
+            </div>
+            <div class='profile-title'>Данные пользователя</div>
+            <div class='profile-grid'>
+                <div class='form-group'>
+                    <label>Логин</label>
+                    <input type='text' id='username' readonly style='background:#e8e0d8; cursor:not-allowed;'>
+                </div>
+                <div class='form-group'>
+                    <label>Роль</label>
+                    <input type='text' id='role' readonly style='background:#e8e0d8; cursor:not-allowed;'>
+                </div>
+                <div class='form-group'>
+                    <label>Полное имя (ФИО)</label>
+                    <input type='text' id='full-name' placeholder='Введите ФИО'>
+                </div>
+                <div class='form-group'>
+                    <label>Электронная почта</label>
+                    <input type='email' id='email' placeholder='Введите email'>
+                </div>
+                <div class='form-group'>
+                    <label>Отдел</label>
+                    <input type='text' id='department' placeholder='Введите отдел'>
+                </div>
+                <div class='form-group'>
+                    <label>Должность</label>
+                    <input type='text' id='position' placeholder='Введите должность'>
+                </div>
+                <div class='form-group'>
+                    <label>Телефон</label>
+                    <input type='tel' id='phone' placeholder='+7 000 000 00 00'>
+                </div>
+            </div>
+            <div id='flash-container'></div>
+            <div class='profile-btns'>
+                <button class='btn btn-primary' onclick='saveProfile()'>Сохранить изменения</button>
+                <button class='btn btn-danger' onclick='confirmLogout()'>Выйти из аккаунта</button>
+            </div>
+        </div>
+    </div>
+
+    <div style='max-width:700px; margin:24px auto 0;'>
+        <div class='admin-card'>
+            <div class='admin-card-title'>История моих регистраций на мероприятия</div>
+            <div id='registrations-container'>
+                <p style='color:#666; text-align:center;'>Загрузка...</p>
+            </div>
+        </div>
+    </div>
+
+    <div style='max-width:700px; margin:24px auto 0;'>
+        <div class='admin-card'>
+            <div class='admin-card-title'>Мои записи на олимпиады</div>
+            <div id='olympiad-registrations'>
+                <p style='color:#666; text-align:center;'>Вы ещё не записывались на олимпиады</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id='modal' class='modal-overlay'>
+    <div class='modal-box'>
+        <p id='modal-text'>Вы уверены что хотите выйти из аккаунта?</p>
+        <div class='modal-btns'>
+            <button class='btn btn-danger' onclick='logout()'>Да</button>
+            <button class='btn' onclick='closeModal()'>Нет</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var eventTypes = { meeting: 'Совещание', training: 'Тренинг', corporate: 'Корпоратив', conference: 'Конференция', other: 'Другое' };
+var regStatuses = { pending: 'Ожидает', confirmed: 'Подтверждено', cancelled: 'Отменено' };
+
+async function loadNavRole() {
+    try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+            const data = await response.json();
+            const nav = document.getElementById('nav-right');
+            if (data.role_code === 'admin') {
+                nav.innerHTML = "<a href='/admin'><span class='nav-dot'></span> Панель управления</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            } else if (data.role_code === 'organizer') {
+                nav.innerHTML = "<a href='/organizer'><span class='nav-dot'></span> Мои мероприятия</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            }
+            document.getElementById('username').value = data.username || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('role').value = data.role || '';
+            document.getElementById('full-name').value = data.full_name || '';
+            document.getElementById('department').value = data.department || '';
+            document.getElementById('position').value = data.position || '';
+            document.getElementById('phone').value = data.phone || '';
+        }
+    } catch(e) {}
+}
+
+async function loadRegistrations() {
+    try {
+        const response = await fetch('/api/my-registrations');
+        if (response.ok) {
+            const regs = await response.json();
+            const container = document.getElementById('registrations-container');
+            if (regs.length === 0) {
+                container.innerHTML = '<p style="color:#666; text-align:center;">Вы ещё не записывались на мероприятия</p>';
+                return;
+            }
+            var rows = regs.map(function(r) {
+                var statusClass = r.status === 'confirmed' ? 'role-employee' : r.status === 'cancelled' ? 'role-admin' : 'role-organizer';
+                return '<tr>' +
+                    '<td>' + r.title + '</td>' +
+                    '<td>' + (eventTypes[r.event_type] || r.event_type || '-') + '</td>' +
+                    '<td>' + (r.location || '-') + '</td>' +
+                    '<td>' + new Date(r.start).toLocaleDateString('ru-RU') + '</td>' +
+                    '<td>' + r.registration_date + '</td>' +
+                    '<td><span class="role-badge ' + statusClass + '">' + (regStatuses[r.status] || r.status) + '</span></td>' +
+                    '</tr>';
+            }).join('');
+            container.innerHTML = '<table class="admin-table"><thead><tr><th>Мероприятие</th><th>Тип</th><th>Место</th><th>Дата</th><th>Дата записи</th><th>Статус</th></tr></thead><tbody>' + rows + '</tbody></table>';
+        }
+    } catch(e) {}
+}
+
+function loadOlympiadRegistrations() {
+    var saved = localStorage.getItem('olympiad_registrations');
+    if (!saved) return;
+    var regs = JSON.parse(saved);
+    if (regs.length === 0) return;
+    var rows = regs.map(function(r) {
+        return '<tr><td>' + r.title + '</td><td>' + r.date + '</td><td>' + r.time + '</td><td><span class="role-badge role-employee">Записан</span></td></tr>';
+    }).join('');
+    document.getElementById('olympiad-registrations').innerHTML =
+        '<table class="admin-table"><thead><tr><th>Олимпиада</th><th>Дата</th><th>Время</th><th>Статус</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+async function saveProfile() {
+    const data = {
+        full_name: document.getElementById('full-name').value.trim(),
+        department: document.getElementById('department').value.trim(),
+        position: document.getElementById('position').value.trim(),
+        phone: document.getElementById('phone').value.trim()
+    };
+    try {
+        const response = await fetch('/api/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const flash = document.getElementById('flash-container');
+        if (response.ok) {
+            flash.innerHTML = '<div class="flash-message flash-success">Изменения сохранены!</div>';
+        } else {
+            flash.innerHTML = '<div class="flash-message flash-error">Ошибка при сохранении!</div>';
+        }
+        setTimeout(function() { flash.innerHTML = ''; }, 3000);
+    } catch(e) {}
+}
+
+function confirmLogout() {
+    document.getElementById('modal').classList.add('active');
+}
+
+async function logout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/login';
+    } catch(e) {
+        window.location.href = '/login';
+    }
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+}
+
+loadNavRole();
+loadRegistrations();
+loadOlympiadRegistrations();
+</script>
+</body>
+</html>

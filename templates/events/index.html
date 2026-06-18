@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Записи на мероприятия</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<header>
+    <nav class='nav-left'>
+        <a href='/index'><span class='nav-dot'></span> Главная страница</a>
+        <a href='/events'><span class='nav-dot'></span> Записи на мероприятия</a>
+    </nav>
+    <div class='logo'>
+        <img src='/static/img/logo.png' alt='Логотип'>
+    </div>
+    <nav class='nav-right' id='nav-right'>
+        <a href='/apply'><span class='nav-dot'></span> Оставление заявки на проведение мероприятия</a>
+        <a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>
+    </nav>
+</header>
+<div class='page-wrapper'>
+    <h1 class='page-title'>Записи на мероприятия</h1>
+    <div class='grid-3'>
+        <div class='card'>
+            <div class='card-title'>Записаться на мероприятие</div>
+            <div class='form-group'>
+                <label>Название мероприятия</label>
+                <input type='text' id='event-title' placeholder='Введите название мероприятия'>
+            </div>
+            <div class='form-group'>
+                <label>ФИО</label>
+                <input type='text' id='event-name' placeholder='Введите ФИО'>
+                <span class='error-text' id='event-name-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Дата проведения мероприятия</label>
+                <input type='date' id='event-date'>
+                <span class='error-text' id='event-date-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Электронная почта</label>
+                <input type='email' id='event-email' placeholder='Введите email'>
+                <span class='error-text' id='event-email-error'></span>
+            </div>
+            <button class='btn btn-primary' onclick="register('event')">Зарегистрироваться</button>
+        </div>
+
+        <div class='card'>
+            <div class='card-title'>Записаться на семинар</div>
+            <div class='form-group'>
+                <label>Название семинара</label>
+                <input type='text' id='seminar-title' placeholder='Введите название семинара'>
+            </div>
+            <div class='form-group'>
+                <label>ФИО</label>
+                <input type='text' id='seminar-name' placeholder='Введите ФИО'>
+                <span class='error-text' id='seminar-name-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Введите дату семинара</label>
+                <input type='date' id='seminar-date'>
+                <span class='error-text' id='seminar-date-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Электронная почта</label>
+                <input type='email' id='seminar-email' placeholder='Введите email'>
+                <span class='error-text' id='seminar-email-error'></span>
+            </div>
+            <button class='btn btn-primary' onclick="register('seminar')">Зарегистрироваться</button>
+        </div>
+
+        <div class='card'>
+            <div class='card-title'>Записаться на собрание</div>
+            <div class='form-group'>
+                <label>Название собрания</label>
+                <input type='text' id='meeting-title' placeholder='Введите название собрания'>
+            </div>
+            <div class='form-group'>
+                <label>ФИО</label>
+                <input type='text' id='meeting-name' placeholder='Введите ФИО'>
+                <span class='error-text' id='meeting-name-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Введите дату собрания</label>
+                <input type='date' id='meeting-date'>
+                <span class='error-text' id='meeting-date-error'></span>
+            </div>
+            <div class='form-group'>
+                <label>Электронная почта</label>
+                <input type='email' id='meeting-email' placeholder='Введите email'>
+                <span class='error-text' id='meeting-email-error'></span>
+            </div>
+            <button class='btn btn-primary' onclick="register('meeting')">Зарегистрироваться</button>
+        </div>
+    </div>
+</div>
+
+<div id='modal' class='modal-overlay'>
+    <div class='modal-box'>
+        <p id='modal-text'>Вы уверены что хотите зарегистрироваться?</p>
+        <div class='modal-btns'>
+            <button class='btn btn-primary' onclick='confirmRegister()'>Да</button>
+            <button class='btn' onclick='closeModal()'>Нет</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadNavRole() {
+    try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+            const data = await response.json();
+            const nav = document.getElementById('nav-right');
+            if (data.role_code === 'admin') {
+                nav.innerHTML = "<a href='/admin'><span class='nav-dot'></span> Панель управления</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            } else if (data.role_code === 'organizer') {
+                nav.innerHTML = "<a href='/organizer'><span class='nav-dot'></span> Мои мероприятия</a>" +
+                    "<a href='/apply'><span class='nav-dot'></span> Оставление заявки</a>" +
+                    "<a href='/profile'><span class='nav-dot'></span> Личный кабинет</a>";
+            }
+        }
+    } catch(e) {}
+}
+
+var currentType = '';
+
+function register(type) {
+    const name = document.getElementById(type + '-name').value.trim();
+    const date = document.getElementById(type + '-date').value;
+    const email = document.getElementById(type + '-email').value.trim();
+
+    document.getElementById(type + '-name-error').textContent = '';
+    document.getElementById(type + '-date-error').textContent = '';
+    document.getElementById(type + '-email-error').textContent = '';
+    document.getElementById(type + '-name').classList.remove('input-error');
+    document.getElementById(type + '-date').classList.remove('input-error');
+    document.getElementById(type + '-email').classList.remove('input-error');
+
+    let hasError = false;
+    if (!name) { document.getElementById(type + '-name').classList.add('input-error'); document.getElementById(type + '-name-error').textContent = 'Введите ФИО !'; hasError = true; }
+    if (!date) { document.getElementById(type + '-date').classList.add('input-error'); document.getElementById(type + '-date-error').textContent = 'Введите дату !'; hasError = true; }
+    if (!email) { document.getElementById(type + '-email').classList.add('input-error'); document.getElementById(type + '-email-error').textContent = 'Введите email !'; hasError = true; }
+    if (hasError) return;
+
+    currentType = type;
+    document.getElementById('modal').classList.add('active');
+}
+
+function confirmRegister() {
+    closeModal();
+    ['title', 'name', 'date', 'max', 'email'].forEach(function(field) {
+        var el = document.getElementById(currentType + '-' + field);
+        if (el) el.value = '';
+    });
+    document.getElementById('modal-text').textContent = 'Вы успешно зарегистрированы!';
+    document.getElementById('modal').classList.add('active');
+    setTimeout(function() {
+        closeModal();
+        document.getElementById('modal-text').textContent = 'Вы уверены что хотите зарегистрироваться?';
+    }, 2000);
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+}
+
+loadNavRole();
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Войти</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<div class='page-wrapper' style='display:flex; align-items:center; justify-content:center; min-height:100vh; padding:0;'>
+    <div class='login-wrapper'>
+        <div class='login-box'>
+            <div class='login-form' style='padding: 40px;'>
+                <h2>Войти в систему</h2>
+                <p style='color:#666; margin-bottom:24px; font-size:14px;'>Введите данные для входа в личный кабинет</p>
+                <div id='flash-container'></div>
+                <div class='form-group'>
+                    <label>Логин</label>
+                    <input type='text' id='username' placeholder='Введите логин'>
+                    <span class='error-text' id='username-error'></span>
+                </div>
+                <div class='form-group'>
+                    <label>Пароль</label>
+                    <div class='password-wrapper'>
+                        <input type='password' id='password' placeholder='Введите пароль'>
+                        <button class='eye-btn' onclick='togglePassword()'>
+                            <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                                <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
+                                <circle cx='12' cy='12' r='3'></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class='error-text' id='password-error'></span>
+                </div>
+                <button class='btn btn-primary' onclick='login()'>Войти</button>
+                <p style='margin-top:8px; font-size:13px;'>Забыли пароль? <a href='/forgot-password' class='link-dark'>Сбросить пароль</a></p>
+                <p style='margin-top:8px; font-size:13px;' style='margin-top:8px;' style='margin-top:8px;'>Нет аккаунта? <a href='/register' class='link-dark'>Зарегистрироваться</a></p>
+            </div>
+            <div class='login-logo'>
+                <img src='/static/img/logo.png' alt='Логотип'>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword() {
+    var input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+async function login() {
+    var username = document.getElementById('username').value.trim();
+    var password = document.getElementById('password').value.trim();
+    document.getElementById('username').classList.remove('input-error');
+    document.getElementById('password').classList.remove('input-error');
+    document.getElementById('username-error').textContent = '';
+    document.getElementById('password-error').textContent = '';
+    var hasError = false;
+    if (!username) { document.getElementById('username').classList.add('input-error'); document.getElementById('username-error').textContent = 'Введите логин !'; hasError = true; }
+    if (!password) { document.getElementById('password').classList.add('input-error'); document.getElementById('password-error').textContent = 'Введите пароль !'; hasError = true; }
+    if (hasError) return;
+    try {
+        var response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        });
+        var data = await response.json();
+        if (response.ok) {
+            window.location.href = '/index';
+        } else {
+            document.getElementById('flash-container').innerHTML = '<div class="flash-message flash-error">' + (data.error || 'Неверный логин или пароль') + '</div>';
+        }
+    } catch(e) {
+        document.getElementById('flash-container').innerHTML = '<div class="flash-message flash-error">Ошибка подключения</div>';
+    }
+}
+document.addEventListener('keypress', function(e) { if (e.key === 'Enter') login(); });
+</script>
+</body>
+</html>

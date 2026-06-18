@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Регистрация</title>
+    <link rel='stylesheet' href='/static/css/style.css'>
+</head>
+<body>
+<div class='login-page'>
+    <div class='login-box'>
+        <div class='login-form-side'>
+            <h2>Регистрация</h2>
+            <p>Создайте аккаунт для доступа к системе</p>
+            <div id='flash-container'></div>
+            <form id='register-form'>
+                <div class='form-group'>
+                    <label>Логин</label>
+                    <input type='text' id='username' placeholder='Придумайте логин' required>
+                    <span class='error-text' id='username-error'></span>
+                </div>
+                <div class='form-group'>
+                    <label>Электронная почта</label>
+                    <input type='email' id='email' placeholder='Введите email' required>
+                    <span class='error-text' id='email-error'></span>
+                </div>
+                <div class='form-group'>
+                    <label>Роль</label>
+                    <select id='role'>
+                        <option value='employee'>Сотрудник</option>
+                        <option value='organizer'>Организатор (требует одобрения админа)</option>
+                    </select>
+                </div>
+                <div class='form-group'>
+                    <label>Пароль</label>
+                    <div class='password-wrapper'>
+                        <input type='password' id='password' placeholder='Придумайте пароль' required>
+                        <button type='button' class='eye-btn' onclick='togglePassword("password", "eye1")'>
+                            <svg id='eye1' xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                                <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
+                                <circle cx='12' cy='12' r='3'></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class='error-text' id='password-error'></span>
+                </div>
+                <div class='form-group'>
+                    <label>Повторите пароль</label>
+                    <div class='password-wrapper'>
+                        <input type='password' id='password2' placeholder='Повторите пароль' required>
+                        <button type='button' class='eye-btn' onclick='togglePassword("password2", "eye2")'>
+                            <svg id='eye2' xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                                <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
+                                <circle cx='12' cy='12' r='3'></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class='error-text' id='password2-error'></span>
+                </div>
+
+                <!-- СОГЛАСИЕ НА ПЕРСОНАЛЬНЫЕ ДАННЫЕ -->
+                <div style='display:flex; flex-direction:row; align-items:flex-start; gap:10px; margin-bottom:4px;'>
+                    <input type='checkbox' id='agree-pd' style='width:16px; height:16px; margin-top:2px; cursor:pointer; flex-shrink:0;'>
+                    <label for='agree-pd' style='font-size:13px; margin:0; line-height:1.4; cursor:pointer;'>
+                        Я соглашаюсь с
+                        <a href='/static/docs/agreement.pdf' target='_blank' class='link-dark' style='text-decoration:underline;'>обработкой персональных данных</a>
+                    </label>
+                </div>
+                <span class='error-text' id='agree-error' style='display:block; margin-bottom:10px; margin-left:26px;'></span>
+
+                <button type='submit' class='btn btn-primary'>Зарегистрироваться</button>
+                <div class='login-links'>
+                    <span>Уже есть аккаунт? <a href='/login' class='link-dark'>Войти</a></span>
+                </div>
+            </form>
+        </div>
+        <div class='login-logo'>
+            <img src='/static/img/logo.png' alt='Логотип'>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    }
+}
+
+function showError(fieldId, errorId, message) {
+    document.getElementById(fieldId).classList.add('input-error');
+    if (message) document.getElementById(errorId).textContent = message + ' !';
+}
+
+function clearErrors() {
+    ['username', 'email', 'password', 'password2'].forEach(function(id) {
+        document.getElementById(id).classList.remove('input-error');
+    });
+    ['username-error', 'email-error', 'password-error', 'password2-error', 'agree-error'].forEach(function(id) {
+        document.getElementById(id).textContent = '';
+    });
+    document.getElementById('flash-container').innerHTML = '';
+}
+
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    clearErrors();
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const password2 = document.getElementById('password2').value.trim();
+    const role = document.getElementById('role').value;
+    const agree = document.getElementById('agree-pd').checked;
+
+    let hasError = false;
+    if (!username) { showError('username', 'username-error', 'Введите логин'); hasError = true; }
+    if (!email) { showError('email', 'email-error', 'Введите email'); hasError = true; }
+    if (!password) { showError('password', 'password-error', 'Введите пароль'); hasError = true; }
+    if (password.length < 6) { showError('password', 'password-error', 'Пароль минимум 6 символов'); hasError = true; }
+    if (password !== password2) { showError('password2', 'password2-error', 'Пароли не совпадают'); hasError = true; }
+    if (!agree) { document.getElementById('agree-error').textContent = 'Необходимо согласие на обработку персональных данных !'; hasError = true; }
+    if (hasError) return;
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, email: email, password: password, role: role })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            window.location.href = '/index';
+        } else {
+            document.getElementById('flash-container').innerHTML = '<div class="flash-message flash-error">' + data.error + ' !</div>';
+        }
+    } catch (err) { console.error(err); }
+});
+</script>
+</body>
+</html>
